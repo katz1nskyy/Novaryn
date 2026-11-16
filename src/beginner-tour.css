@@ -1,0 +1,234 @@
+.beginner-tour {
+  --tour-text: #e9f1fa;
+  --tour-muted: #abbbca;
+  --tour-accent: #95e6fa;
+  --tour-edge: #31465a;
+  position: fixed;
+  z-index: 2001;
+  width: min(390px, calc(100vw - 32px));
+  max-height: calc(100dvh - 104px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  border: 1px solid var(--tour-edge);
+  border-radius: 14px;
+  background: #101923;
+  color: var(--tour-text);
+  right: 16px;
+  bottom: 16px;
+  font:
+    400 14px/1.5 "IBM Plex Sans",
+    system-ui,
+    sans-serif;
+}
+
+.beginner-tour:focus-visible {
+  outline: 2px solid var(--tour-accent);
+  outline-offset: 3px;
+}
+
+.beginner-tour[data-place="center"] {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+
+.beginner-tour[data-place="bl"],
+.beginner-tour[data-place="tl"] {
+  left: 16px;
+  right: auto;
+}
+
+.beginner-tour[data-place="tr"],
+.beginner-tour[data-place="tl"] {
+  top: 84px;
+  bottom: auto;
+}
+
+.beginner-tour-dim,
+.beginner-tour-spot {
+  position: fixed;
+  pointer-events: none;
+  z-index: 2000;
+}
+
+.beginner-tour-dim {
+  inset: 0;
+  background: rgb(4 9 17 / 0.67);
+}
+
+.beginner-tour-spot {
+  border: 1px solid #95e6fa;
+  border-radius: 9px;
+  box-shadow: 0 0 0 150vmax rgb(4 9 17 / 0.62) !important;
+}
+
+.beginner-tour-header,
+.beginner-tour-actions,
+.beginner-tour-epochs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.beginner-tour-header {
+  justify-content: space-between;
+  color: var(--tour-muted);
+  font-size: 12px;
+}
+
+.beginner-tour-header button,
+.beginner-tour-actions button,
+.beginner-tour-epochs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid var(--tour-edge);
+  border-radius: 6px;
+  background: #172737;
+  color: var(--tour-text);
+  font: inherit;
+}
+
+.beginner-tour-header button {
+  min-width: 38px;
+  padding: 0;
+  background: transparent;
+}
+
+.beginner-tour-chapters {
+  display: flex;
+  gap: 4px;
+  margin: 6px 0 12px;
+}
+
+.beginner-tour-chapters button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--tour-edge);
+}
+
+.beginner-tour-chapters button::before {
+  content: "";
+  display: block;
+  height: 4px;
+  border-radius: 4px;
+  background: currentColor;
+}
+
+.beginner-tour-chapters button[aria-current],
+.beginner-tour-chapters button:hover {
+  color: var(--tour-accent);
+}
+
+.beginner-tour h2 {
+  color: var(--tour-text);
+  margin: 0 0 9px;
+  font:
+    600 23px/1.2 "IBM Plex Sans",
+    system-ui,
+    sans-serif;
+}
+
+.beginner-tour p {
+  margin: 0 0 12px;
+  color: var(--tour-muted);
+  font-size: 14px;
+}
+
+.beginner-tour .beginner-tour-tip {
+  border-left: 2px solid var(--tour-accent);
+  padding-left: 10px;
+  color: var(--tour-text);
+}
+
+.beginner-tour-example {
+  display: grid;
+  place-items: center;
+  margin: 0 0 12px;
+  overflow: hidden;
+  border: 1px solid var(--tour-edge);
+  border-radius: 8px;
+  background: #08101a;
+}
+
+.beginner-tour-example canvas {
+  display: block;
+  width: min(144px, 100%);
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+}
+
+.beginner-tour-example figcaption {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px 12px;
+  padding: 8px 10px;
+  color: var(--tour-muted);
+  background: #13212e;
+  font-size: 11px;
+}
+
+.beginner-tour-epochs {
+  width: 100%;
+}
+
+.beginner-tour-epochs button {
+  flex: 1 1 0;
+  min-height: 32px;
+  padding: 4px;
+}
+
+.beginner-tour-epochs button[aria-pressed="true"] {
+  color: var(--tour-accent);
+  border-color: var(--tour-accent);
+}
+
+.beginner-tour a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--tour-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.beginner-tour-actions {
+  justify-content: flex-end;
+}
+
+.beginner-tour-actions .beginner-tour-next {
+  background: var(--tour-accent);
+  border-color: var(--tour-accent);
+  color: #082137;
+  font-weight: 600;
+}
+
+.beginner-tour .beginner-tour-credit {
+  margin: 10px 0 0;
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .beginner-tour:not([data-place="center"]) {
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 60dvh;
+    padding: 14px;
+  }
+}

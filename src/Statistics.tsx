@@ -31,6 +31,7 @@ import {
 } from "recharts";
 import type { Candidate } from "./surveyTypes";
 import BulkSurveyView from "./statistics/BulkSurveyView";
+import { initialCloudJobId } from "./cloudSurvey";
 import {
   candidateSpeed,
   dateOfMjd,
@@ -51,6 +52,7 @@ import type {
 import "./statistics/statistics.css";
 
 const TrackSpace = lazy(() => import("./statistics/TrackSpace"));
+const RemoteSurvey = lazy(() => import("./RemoteSurvey"));
 const number = new Intl.NumberFormat("en-CA");
 const isCandidateInput = (record: Candidate | undefined): record is Candidate =>
   Boolean(record);
@@ -83,15 +85,18 @@ interface Props {
 
 const sections = [
   "Large archive survey",
+  "Remote survey",
   "Survey fields",
   "Detections",
   "Validation",
 ] as const;
 type Section = (typeof sections)[number];
-type PilotSection = Exclude<Section, "Large archive survey">;
+type PilotSection = Exclude<Section, "Large archive survey" | "Remote survey">;
 
 export default function Statistics(props: Props) {
-  const [section, setSection] = useState<Section>("Large archive survey");
+  const [section, setSection] = useState<Section>(() =>
+    initialCloudJobId() ? "Remote survey" : "Large archive survey",
+  );
   return (
     <div className="statistics-center">
       <div className="stats-toolrow">
@@ -108,11 +113,15 @@ export default function Statistics(props: Props) {
           ))}
         </nav>
         <span className="stats-scope">
-          <span /> Published survey records
+          <span /> {section === "Remote survey" ? "Remote survey records" : "Published survey records"}
         </span>
       </div>
       {section === "Large archive survey" ? (
         <BulkSurveyView onAtlas={props.onAtlas} />
+      ) : section === "Remote survey" ? (
+        <Suspense fallback={<p className="stats-notice" role="status">Opening remote survey…</p>}>
+          <RemoteSurvey />
+        </Suspense>
       ) : (
         <PilotStatistics {...props} section={section} />
       )}

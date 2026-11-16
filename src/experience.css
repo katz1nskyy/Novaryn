@@ -611,8 +611,99 @@
   border-radius: 6px;
   background: var(--s1);
 }
-.finding-card .finding-track {
+.finding-preview,
+.finding-preview-empty {
   margin: 12px 0;
+  padding: 11px;
+  min-height: 152px;
+  border: 1px solid #253034;
+  border-radius: 6px;
+  background: #101416;
+}
+
+.finding-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.finding-preview-image {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 180px);
+  aspect-ratio: 1;
+  justify-self: center;
+  border: 1px solid #35474e;
+  border-radius: 4px;
+  background: #07090a;
+}
+
+.finding-preview-image img {
+  display: block;
+  position: absolute;
+  max-width: none;
+  image-rendering: pixelated;
+}
+
+.finding-preview-ring {
+  position: absolute;
+  width: 17px;
+  aspect-ratio: 1;
+  border: 1px solid #a1edff;
+  border-radius: 50%;
+  outline: 1px solid #101416;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.finding-preview figcaption {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  color: #b3c1c7;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.finding-preview figcaption strong {
+  color: #ecf5f7;
+  font-size: 12px;
+}
+
+.finding-preview a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  color: #b2eaf7;
+}
+
+.finding-preview-empty {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  color: #b3c1c7;
+  font-size: 12px;
+  text-align: center;
+}
+
+.finding-guide {
+  margin: 10px 0 16px;
+  color: #c2cdd0;
+  font-size: 13px;
+}
+
+.finding-guide summary {
+  width: fit-content;
+  cursor: pointer;
+  color: #b2eaf7;
+}
+
+.finding-guide p {
+  max-width: 78ch;
+  margin: 8px 0;
 }
 .finding-card h3 {
   margin: 0;
@@ -672,6 +763,10 @@
 }
 .finding-track-detail p {
   margin: 0;
+}
+.finding-track-detail h4 {
+  margin: 0 0 5px;
+  font-size: 13px;
 }
 .image-plane .blended-exposure,
 .image-plane .image-track {

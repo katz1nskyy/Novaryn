@@ -37,6 +37,8 @@ The optical atlas uses NASA SVS [Deep Star Maps 2020](https://svs.gsfc.nasa.gov/
 
 The persistent archive worker inventories SPHEREx DR1 and QR3, processes native detector images in parallel, and plans multi-epoch DeepTrace searches automatically. Statistics counts the unique images actually processed toward the 500,000-image target and separately reports the area searched for motion. See [run, resume and publish the archive survey](docs/bulk-survey.md).
 
+The [Kaggle pilot setup](cloud-survey/SETUP.md) provides a separate CPU notebook workflow with Supabase checkpoints. Its remote survey counters and owner-queued Automatic detection results are displayed separately from the published archive snapshot.
+
 For a small survey of specific coordinates:
 
 ```sh

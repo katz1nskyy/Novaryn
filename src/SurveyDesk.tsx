@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { date, download, fmt, post, request } from "./lib";
 import { useBulkSurvey } from "./bulkSurvey";
+import CandidatePreview from "./CandidatePreview";
+import type { CandidatePreviews } from "./CandidatePreview";
 import type {
   Candidate,
   Investigation,
@@ -53,6 +55,7 @@ export default function SurveyDesk({
 }) {
   const bulk = useBulkSurvey();
   const [snapshot, setSnapshot] = useState<SurveySnapshot | null>(null);
+  const [previews, setPreviews] = useState<CandidatePreviews | null>();
   const [snapshotError, setSnapshotError] = useState("");
   const [selected, setSelected] = useState(
     () => new URLSearchParams(location.search).get("candidate") || "",
@@ -74,6 +77,13 @@ export default function SurveyDesk({
       .then(setSnapshot)
       .catch((error) => {
         if (!abort.signal.aborted) setSnapshotError(error.message);
+      });
+    request<CandidatePreviews>("/candidate-previews.json", {
+      signal: abort.signal,
+    })
+      .then(setPreviews)
+      .catch(() => {
+        if (!abort.signal.aborted) setPreviews(null);
       });
     return () => abort.abort();
   }, []);
@@ -311,8 +321,27 @@ export default function SurveyDesk({
         <div>
           <p className="caption candidate-count">
             {matches.length} of {snapshot.candidates.length} retained trial
-            peaks. Ranking uses nominal measurements.
+            peaks. These are signals to investigate.
           </p>
+          <details className="finding-guide">
+            <summary>What do the images and numbers mean?</summary>
+            <p>
+              Each grayscale image shows one real NASA exposure from the
+              candidate’s search. We stretch the contrast to show faint
+              details. Black pixels mark regions without usable data. The
+              cyan ring marks where the tested motion would place the signal
+              on that date. A few previews were processed again from the
+              same FITS exposure. Their pixels can differ from the recorded
+              search inputs.
+            </p>
+            <p>
+              Nominal S/N estimates how clearly the signal stands out from
+              noise. S/N gain is the change from a search that keeps the
+              position fixed. Trial speed is how fast the search moved the
+              test position across the sky. Open a candidate to compare epochs,
+              check image quality and read the catalog results.
+            </p>
+          </details>
           <div className="candidate-gallery">
             {matches.slice(0, visible).map((c) => (
               <article key={c.id} className="finding-card">
@@ -326,7 +355,11 @@ export default function SurveyDesk({
                       : "Review pending"}
                   </span>
                 </div>
-                <CandidateTrack input={c} compact />
+                <CandidatePreview
+                  candidate={c}
+                  previews={previews}
+                  onDetails={() => show(c.id)}
+                />
                 <h3>
                   <button onClick={() => show(c.id)}>
                     {c.id}
@@ -348,7 +381,7 @@ export default function SurveyDesk({
                     <dd>{fmt(c.evidence.snrGainOverStatic, 1)}</dd>
                   </div>
                   <div>
-                    <dt>Trial ″/day</dt>
+                    <dt>Trial speed (″/day)</dt>
                     <dd>{fmt(speed(c), 3)}</dd>
                   </div>
                 </dl>
@@ -418,13 +451,7 @@ export default function SurveyDesk({
   );
 }
 
-function CandidateTrack({
-  input,
-  compact = false,
-}: {
-  input: InvestigationInput;
-  compact?: boolean;
-}) {
+function CandidateTrack({ input }: { input: InvestigationInput }) {
   const samples = input.evidence.epochMeasurements ?? [];
   const decScale = Math.cos((input.dec * Math.PI) / 180);
   const offsets = samples.map((epoch) => ({
@@ -446,7 +473,7 @@ function CandidateTrack({
       className="finding-track"
       viewBox="0 0 240 102"
       role="img"
-      aria-label="Candidate trial direction across observed dates"
+      aria-label="Modeled trial direction across exposure dates"
     >
       <path
         d="M18 51H224 M120 7V95"
@@ -459,16 +486,12 @@ function CandidateTrack({
         stroke="#293b58"
         opacity=".6"
       />
-      {!compact && (
-        <text x="8" y="15" fill="#a6bed8" fontSize="8">
-          N
-        </text>
-      )}
-      {!compact && (
-        <text x="221" y="46" fill="#a6bed8" fontSize="8">
-          E
-        </text>
-      )}
+      <text x="8" y="15" fill="#a6bed8" fontSize="8">
+        N
+      </text>
+      <text x="221" y="46" fill="#a6bed8" fontSize="8">
+        E
+      </text>
       <polyline
         points={coordinates.map((p) => `${p.u},${p.v}`).join(" ")}
         fill="none"
@@ -489,11 +512,9 @@ function CandidateTrack({
           </title>
         </circle>
       ))}
-      {!compact && (
-        <text x="7" y="96" fill="#90accb" fontSize="8">
-          ± {fmt(extent, 1)} arcsec
-        </text>
-      )}
+      <text x="7" y="96" fill="#90accb" fontSize="8">
+        ± {fmt(extent, 1)} arcsec
+      </text>
     </svg>
   );
 }
@@ -663,11 +684,14 @@ function CandidateDetail({
       {epochs.length > 1 && (
         <div className="finding-track-detail">
           <CandidateTrack input={input} />
-          <p className="caption">
-            Pattern evaluated at actual exposure times. East and north offsets
-            share an angular scale. The points are samples along the trial
-            track, with timestamps available on each marker.
-          </p>
+          <div>
+            <h4>Modeled motion track</h4>
+            <p className="caption">
+              The line shows the path tested by the search. Each marker is a
+              calculated position on the path at a real exposure time. East
+              and north offsets share the same angular scale.
+            </p>
+          </div>
         </div>
       )}
       <div className="table-scroll">

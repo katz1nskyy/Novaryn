@@ -46,6 +46,7 @@ import { toast } from "sonner";
 import SkyCanvas from "./SkyCanvas";
 import EvidenceMaps from "./EvidenceMaps";
 import AladinPanel from "./AladinPanel";
+import TutorialButton from "./TutorialButton";
 const SpectrumChart = lazy(() =>
   import("./Charts").then((m) => ({ default: m.SpectrumChart })),
 );
@@ -56,6 +57,8 @@ import MissionHome from "./MissionHome";
 const Atlas = lazy(() => import("./Atlas"));
 const Statistics = lazy(() => import("./Statistics"));
 const SolarSystem = lazy(() => import("./SolarSystem"));
+const BeginnerTour = lazy(() => import("./BeginnerTour"));
+const AutomaticDetection = lazy(() => import("./AutomaticDetection"));
 import ArchiveStatus from "./ArchiveStatus";
 import {
   archiveFitsUrls,
@@ -156,6 +159,8 @@ type LoadSource =
   | { kind: "recorded"; path: string }
   | { kind: "fits"; urls: string[]; label: string; pixels?: number };
 type Packet = { search: SearchResult; frames: Frame[] };
+const TUTORIAL_CUE_KEY = "slowtrace-tutorial-cue-seen";
+
 function fieldKey(params: URLSearchParams) {
   return JSON.stringify(
     ["ra", "dec", "fov", "detector", "example", "evidence"].map((key) =>
@@ -327,6 +332,24 @@ function MissionHeader({
 }
 
 export default function App() {
+  const [tutorialOpen, setTutorialOpen] = useState(
+    () => new URLSearchParams(location.search).get("tutorial") === "1",
+  );
+  const [firstVisit, setFirstVisit] = useState(() => {
+    try {
+      return !localStorage.getItem(TUTORIAL_CUE_KEY);
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    if (!firstVisit) return;
+    try {
+      localStorage.setItem(TUTORIAL_CUE_KEY, "1");
+    } catch {
+      // The tutorial still works when storage is unavailable.
+    }
+  }, [firstVisit]);
   const [page, setPage] = useState<Page>(initialPage),
     [spatialFocus, setSpatialFocus] = useState(initialFocus),
     [mobile, setMobile] = useState(false),
@@ -825,6 +848,21 @@ export default function App() {
         { kind: "recorded", path: EXAMPLE_PATHS[0] },
       );
   }
+  function startTutorial() {
+    setMobile(false);
+    setMoreOpen(false);
+    setFirstVisit(false);
+    setTutorialOpen(true);
+  }
+  function closeTutorial() {
+    setTutorialOpen(false);
+    setFirstVisit(false);
+    const url = new URL(location.href);
+    if (url.searchParams.has("tutorial")) {
+      url.searchParams.delete("tutorial");
+      history.replaceState(null, "", url);
+    }
+  }
   function chooseTarget(index: number) {
     const target = TARGETS[index];
     navigate("observe");
@@ -1059,14 +1097,6 @@ export default function App() {
                 <img src="/mark.svg" alt="" />
                 SLOWTRACE X
               </button>
-              <button
-                className="navbar-menu"
-                aria-expanded={mobile}
-                aria-label={mobile ? "Close navigation" : "Open navigation"}
-                onClick={() => setMobile(!mobile)}
-              >
-                {mobile ? <X size={18} /> : <Menu size={18} />}
-              </button>
               <nav
                 aria-label="Main navigation"
                 className={`navbar-nav ${mobile ? "open" : ""}`}
@@ -1104,11 +1134,28 @@ export default function App() {
                   </div>
                 </div>
               </nav>
+              <TutorialButton
+                onClick={startTutorial}
+                firstVisit={firstVisit && !tutorialOpen}
+              />
+              <button
+                className="navbar-menu"
+                aria-expanded={mobile}
+                aria-label={mobile ? "Close navigation" : "Open navigation"}
+                onClick={() => setMobile(!mobile)}
+              >
+                {mobile ? <X size={18} /> : <Menu size={18} />}
+              </button>
             </header>
           )}
           <main id="main" className={`view-${page}`}>
             {page === "home" && (
-              <MissionHome onNavigate={navigate} onExample={chooseTarget} />
+              <MissionHome
+                onNavigate={navigate}
+                onExample={chooseTarget}
+                onTutorial={startTutorial}
+                firstVisit={firstVisit && !tutorialOpen}
+              />
             )}
             {page !== "home" && page !== "atlas" && (
               <div className={`page-heading ${page === "observe" ? "sr-only" : ""}`}>
@@ -1209,6 +1256,16 @@ export default function App() {
                   <div className="load-status error" role="alert">
                     {inputError}
                   </div>
+                )}
+                {page === "observe" && (
+                  <Suspense fallback={null}>
+                    <AutomaticDetection
+                      raText={raText}
+                      decText={decText}
+                      fov={draft.fov}
+                      detector={draft.detector}
+                    />
+                  </Suspense>
                 )}
               </div>
             )}
@@ -2384,6 +2441,11 @@ export default function App() {
           </main>
         </div>
       </div>
+      {tutorialOpen && (
+        <Suspense fallback={null}>
+          <BeginnerTour onClose={closeTutorial} onNavigate={go} />
+        </Suspense>
+      )}
     </Tooltip.Provider>
   );
 }

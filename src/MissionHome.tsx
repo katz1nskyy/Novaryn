@@ -9,6 +9,7 @@ import {
   Telescope,
 } from "lucide-react";
 import SkyCanvas from "./SkyCanvas";
+import TutorialButton from "./TutorialButton";
 import { date, fmt, quantile, request } from "./lib";
 import type { Frame } from "./types";
 import type { SurveySnapshot } from "./surveyTypes";
@@ -20,9 +21,13 @@ const nasaMosaic =
 export default function MissionHome({
   onNavigate,
   onExample,
+  onTutorial,
+  firstVisit,
 }: {
   onNavigate: (page: MissionDestination) => void;
   onExample: (index: number) => void;
+  onTutorial: () => void;
+  firstVisit: boolean;
 }) {
   const [survey, setSurvey] = useState<SurveySnapshot | null>(null);
   const [frames, setFrames] = useState<Frame[]>([]);
@@ -72,6 +77,7 @@ export default function MissionHome({
             signals, and follow each observation back to the NASA archive.
           </p>
           <div className="mission-actions">
+            <TutorialButton onClick={onTutorial} firstVisit={firstVisit} />
             <button className="primary" onClick={() => onNavigate("atlas")}>
               <Globe2 size={18} /> Explore the sky <ArrowRight size={17} />
             </button>

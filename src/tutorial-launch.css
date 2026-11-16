@@ -1,0 +1,59 @@
+.tutorial-launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.navbar > .tutorial-launch {
+  margin-inline-start: auto;
+}
+
+.tutorial-launch-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #95e6fa;
+  border-radius: 6px;
+  background: #95e6fa;
+  color: #0d263a;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mission-actions .tutorial-launch-button {
+  padding-inline: 15px;
+}
+
+.tutorial-launch-arrow {
+  flex: none;
+  color: #95e6fa;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tutorial-launch-arrow {
+    animation: tutorial-nudge 280ms var(--ease-out) 350ms 3 alternate;
+  }
+}
+
+@keyframes tutorial-nudge {
+  to { transform: translateX(4px); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tutorial-launch-button:hover {
+    background: #c1f1ff;
+  }
+}
+
+@media (max-width: 760px) {
+  .navbar > .tutorial-launch + .navbar-menu {
+    margin-inline-start: 0;
+    flex: none;
+  }
+}

@@ -2,14 +2,19 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+import os
+import re
 import sys
 from pathlib import Path
 from typing import Literal
+from uuid import UUID
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query
+import requests
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, FiniteFloat
 
 from science import archive
@@ -35,6 +40,86 @@ def run(function, *args, **kwargs):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "SLOWTRACE X", "source": "NASA/IPAC IRSA SPHEREx DR1 + QR3", "version": "2.1.0"}
+
+
+def _cloud_settings():
+    url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+    key = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
+    if re.fullmatch(r"https://[a-z0-9]+\.supabase\.co", url) and re.fullmatch(r"sb_publishable_[\w-]+", key):
+        return url, key
+    return None
+
+
+def _cloud_request(path, *, payload=None, authorization=None, params=None, cache=False, sign_in=False):
+    settings = _cloud_settings()
+    if not settings:
+        raise HTTPException(503, "The remote survey database is not connected.")
+    url, key = settings
+    headers = {"apikey": key, "Accept": "application/json"}
+    if authorization:
+        headers["Authorization"] = authorization
+    try:
+        with requests.request("GET" if payload is None else "POST", url + path, params=params,
+                              json=payload, headers=headers, allow_redirects=False, timeout=(4, 8)) as response:
+            status = response.status_code
+            if status in (401, 403) or (sign_in and status == 400):
+                raise HTTPException(401, "Survey owner authentication failed.")
+            data = response.json()
+            if status == 429 or (authorization and status == 400 and isinstance(data, dict) and data.get("code") == "P0001"):
+                raise HTTPException(429, "The survey queue or service has reached a limit.")
+            if status != 200:
+                raise HTTPException(502, "The remote survey could not respond.")
+    except (requests.RequestException, ValueError):
+        raise HTTPException(502, "The remote survey connection failed.") from None
+    if sign_in:
+        if not isinstance(data, dict) or not data.get("access_token"):
+            raise HTTPException(502, "The remote survey did not return an owner session.")
+        data = {name: data.get(name) for name in ("access_token", "expires_at", "expires_in")}
+    return JSONResponse(data, headers={"Cache-Control": "public, max-age=0, s-maxage=45" if cache else "no-store"})
+
+
+@app.get("/api/cloud-survey/config")
+def cloud_survey_config():
+    return JSONResponse({"connected": _cloud_settings() is not None}, headers={"Cache-Control": "public, max-age=30"})
+
+
+@app.get("/api/cloud-survey/status")
+def cloud_survey_status():
+    return _cloud_request("/rest/v1/rpc/slowtrace_survey_status", cache=True)
+
+
+@app.get("/api/cloud-survey/detection/{job_id}")
+def cloud_survey_detection(job_id: UUID):
+    return _cloud_request("/rest/v1/rpc/slowtrace_detection_result", params={"p_job_id": str(job_id)})
+
+
+@app.post("/api/cloud-survey/sign-in")
+async def cloud_survey_sign_in(request: Request):
+    from starlette.concurrency import run_in_threadpool
+    try:
+        body = await request.json()
+        email, password = body["email"], body["password"]
+        if not isinstance(email, str) or not isinstance(password, str) or not 0 < len(email) <= 254 or not 0 < len(password) <= 256:
+            raise ValueError()
+    except (ValueError, KeyError, TypeError):
+        raise HTTPException(400, "Enter your survey owner email and password.") from None
+    return await run_in_threadpool(_cloud_request, "/auth/v1/token", params={"grant_type": "password"},
+                                   payload={"email": email, "password": password}, sign_in=True)
+
+
+class CloudDetectionRequest(BaseModel):
+    ra: FiniteFloat = Field(ge=0, lt=360)
+    dec: FiniteFloat = Field(ge=-90, le=90)
+    fov: FiniteFloat = Field(ge=2, le=30)
+    detector: int = Field(ge=0, le=6)
+
+
+@app.post("/api/cloud-survey/detection")
+def queue_cloud_detection(field: CloudDetectionRequest, authorization: str | None = Header(None)):
+    if not authorization or not re.fullmatch(r"Bearer [\w.-]{1,8192}", authorization):
+        raise HTTPException(401, "Survey owner authentication is required.")
+    return _cloud_request("/rest/v1/rpc/slowtrace_automatic_detection", authorization=authorization,
+                          payload={f"p_{key}": value for key, value in field.model_dump().items()})
 
 
 @app.get("/api/search")

@@ -1,0 +1,171 @@
+.auto-detection {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.auto-detection-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auto-detection-toggle[aria-expanded="true"] > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.auto-detection-panel {
+  width: min(100%, 720px);
+  padding: 14px;
+  border: 1px solid var(--line, #263746);
+  border-radius: 6px;
+  background: var(--s1, #111416);
+  font-size: 13px;
+}
+
+.auto-detection-panel p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.auto-detection-panel p + p,
+.auto-detection-panel .auto-detection-actions + p {
+  margin-top: 10px;
+}
+
+.auto-detection-panel p a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 6px;
+  color: var(--accent, #95e5f6);
+}
+
+.auto-detection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.auto-detection-actions label {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 180px;
+  max-width: 260px;
+  min-width: 0;
+}
+
+.auto-detection-actions input {
+  width: 100%;
+  min-width: 0;
+}
+
+.auto-detection-error {
+  color: #ffb4ac;
+}
+
+.remote-survey {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.remote-checkpoint,
+.remote-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  margin: 0;
+  border: 1px solid var(--stats-line);
+  border-radius: 6px;
+  gap: 1px;
+  overflow: hidden;
+  background: var(--stats-line);
+}
+
+.remote-checkpoint > div,
+.remote-metrics > div {
+  min-width: 0;
+  padding: 15px 17px;
+  border: 0;
+  background: var(--s1);
+}
+
+.remote-checkpoint dt,
+.remote-metrics dt {
+  color: var(--stats-secondary);
+  font-size: 12px;
+}
+
+.remote-checkpoint dd,
+.remote-metrics dd {
+  margin: 5px 0 0;
+  color: var(--stats-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.remote-metrics dd {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.remote-candidates {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--stats-line);
+  border-radius: 6px;
+  background: var(--s1);
+}
+
+.remote-candidates > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.remote-candidates h3,
+.remote-candidates p {
+  margin: 0;
+}
+
+.remote-candidates p {
+  color: var(--stats-secondary);
+  font-size: 13px;
+}
+
+.remote-candidates > .remote-candidates {
+  width: 100%;
+}
+
+.remote-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.remote-table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.remote-table-scroll :is(th, td) {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--stats-line);
+}
+
+.remote-table-scroll td:first-child {
+  overflow-wrap: anywhere;
+}
+
+.remote-table-scroll td:nth-child(2) {
+  white-space: nowrap;
+}
