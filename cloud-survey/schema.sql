@@ -74,7 +74,8 @@ create table if not exists slowtrace_cloud.groups (
     id text primary key check (length(id) between 1 and 240),
     algorithm text not null check (length(algorithm) between 1 and 160),
     product_ids text[] not null check (cardinality(product_ids) between 2 and 50),
-    metadata jsonb not null check (jsonb_typeof(metadata) = 'object' and octet_length(metadata::text) <= 16384),
+    -- DeepTrace retains the original observation metadata and hashed input signatures.
+    metadata jsonb not null check (jsonb_typeof(metadata) = 'object' and octet_length(metadata::text) <= 65536),
     state text not null check (state in ('compatible', 'searched', 'retry', 'blocked')),
     attempts integer not null default 0 check (attempts >= 0),
     retry_at timestamptz,
@@ -92,7 +93,7 @@ create table if not exists slowtrace_cloud.candidates (
     ra double precision not null check (ra >= 0 and ra < 360),
     dec double precision not null check (dec between -90 and 90),
     classification text not null check (classification in ('unresolved', 'known_match', 'artifact', 'insufficient')),
-    evidence jsonb not null check (jsonb_typeof(evidence) = 'object' and octet_length(evidence::text) <= 8192),
+    evidence jsonb not null check (jsonb_typeof(evidence) = 'object' and octet_length(evidence::text) <= 32768),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
