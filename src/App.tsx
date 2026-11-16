@@ -2721,7 +2721,7 @@ function Methods() {
             "Gaia DR3 archive",
             "https://archive.stsci.edu/missions-and-data/gaia",
           ],
-          ["Source code & reproducibility", "/source.zip"],
+          ["Source code & reproducibility", "https://github.com/katz1nskyy/SLOWTRACE-X"],
         ].map(([label, url]) => (
           <a
             key={url}
